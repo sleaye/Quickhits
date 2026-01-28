@@ -25,11 +25,11 @@ let result = ["imgs/bell.webp", "imgs/7.webp", "imgs/quickhit.png", "imgs/7.webp
 let winningOutputs = [];
 
 const sounds = {
-    startSlot: new Audio("https://github.com/user/project/blob/main/audio/start-slot.m4a"),
-    quickhit: new Audio("https://github.com/user/project/blob/main/audio/audio/quickhit.mp3"),
-    reelStop: new Audio("https://github.com/user/project/blob/main/audio/audio/reel-stop.mp3"),
-    changeBet: new Audio("https://github.com/user/project/blob/main/audio/audio/stop-slot.m4a"),
-    win: new Audio("https://github.com/user/project/blob/main/audio/audio/win.m4a"),
+    startSlot: new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/start-slot.m4a"),
+    quickhit: new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/quickhit.mp3"),
+    reelStop: new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/reel-stop.mp3"),
+    changeBet: new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/stop-slot.m4a"),
+    win: new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/win.m4a"),
     playSound: function(audio, audioLevel) {
         audio.volume = audioLevel != null ? audioLevel : 0.2
         audio.play();
@@ -265,7 +265,7 @@ function animateReels(res) {
 
         animation.onfinish = function() {
             test = true;
-            let newAudio = new Audio("https://github.com/user/project/blob/main/audio/reel-stop.mp3");
+            let newAudio = new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/reel-stop.mp3");
             newAudio.volume = 0.2;
 
             if (skipAnimation) {
@@ -304,7 +304,7 @@ function checkSlots(parent) {
         const img = reel[i].getElementsByTagName("img")[0].src;
         const src = img.substring(img.indexOf("i"))
         if (src == "imgs/quickhit.png") {
-            let newQuickhit = new Audio("https://github.com/user/project/blob/main/audio/quickhit.mp3")
+            let newQuickhit = new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/quickhit.mp3")
             newQuickhit.volume = 0.2;
             newQuickhit.play();
             reel[i].style.animation = "quickhit 0.4s"
@@ -512,3 +512,4 @@ function displayWinningsUI(numIcons, prizeMultiplier) {
     return amountWon;
 
 }
+
