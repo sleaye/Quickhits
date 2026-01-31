@@ -339,7 +339,7 @@ function checkSlots(parent) {
     for (let i = 0; i < reel.length; i++) {
         const img = reel[i].getElementsByTagName("img")[0].src;
         const src = img.substring(img.indexOf("i"))
-        if (src == "imgs/quickhit.png") {
+        if (src == "/imgs/quickhit.png") {
             quickhitsInRow++;
             let newQuickhit = new Audio("audio/quickhit.mp3")
             newQuickhit.volume = 0.2;
@@ -349,6 +349,8 @@ function checkSlots(parent) {
             if(i == 2 && quickhitsInRow == 3) {
                 sounds.playSound(sounds.quickHitPop);
             }
+        } else {
+            console.log(src)
         }
 
         // if(src == "imgs/bell.webp") {
