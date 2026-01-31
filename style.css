@@ -31,6 +31,7 @@ body {
     transition: 2s ease;
 }
 
+
 .slot {
     object-fit:scale-down
 }
@@ -62,9 +63,19 @@ body {
     padding: 3px;
 }
 
+.info-bar.collapsed {
+    flex-direction: column;
+}
+
+.info-bar span.collapsed {
+    font-size: 20px;
+    margin: 0;
+    color: rgb(218, 146, 146);
+}
+
 
 .info-bar span {
-    padding: 12px;
+    padding: 4px;
     font-size: 40px;
 }
 

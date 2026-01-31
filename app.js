@@ -7,12 +7,15 @@ let audio = document.getElementById("quickhit-sound")
 let audioOn = false;
 
 let balance = 50;
-let bet = 5;
+let bet = 0.25;
 let amountWon = 0;
+let isCounting = false;
 
 let sessionSpend = 0;
 let timesSpun = 0;
 let totalWon = 0;
+
+let winningsInterval;
 
 let slotSpinning = false;
 let skipAnimation = false;
@@ -25,16 +28,27 @@ let result = ["imgs/bell.webp", "imgs/7.webp", "imgs/quickhit.png", "imgs/7.webp
 let winningOutputs = [];
 
 const sounds = {
-    startSlot: new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/start-slot.m4a"),
-    quickhit: new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/quickhit.mp3"),
-    reelStop: new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/reel-stop.mp3"),
-    changeBet: new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/stop-slot.m4a"),
-    win: new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/win.m4a"),
-    playSound: function(audio, audioLevel) {
+    startSlot: new Audio("audio/start-slot.m4a"),
+    quickhit: new Audio("audio/quickhit.mp3"),
+    reelStop: new Audio("audio/reel-stop.mp3"),
+    changeBet: new Audio("audio/stop-slot.m4a"),
+    coinCounting: new Audio("audio/coin-raffle.mp3"),
+    quickHitPop: new Audio("audio/multiple-quickhit-pop.mp3"),
+    fourOfAKind: new Audio("audio/4ofakind.mp3"),
+    addMoney: new Audio("audio/add-money.mp3"),
+    mainMusic: new Audio("audio/main-music.mp3"),
+    win: new Audio("audio/win.m4a"),
+    playSound: function(audio, audioLevel, loop) {
         audio.volume = audioLevel != null ? audioLevel : 0.2
+        
+        if(loop) {
+            audio.loop = true
+        }
+
         audio.play();
     }
 }
+
 
 let pool = {
     1: "imgs/bell.webp",
@@ -52,7 +66,7 @@ for (let i = 0; i < betButtons.length; i++) {
 let results = [];
 document.addEventListener("keypress", (e) => {
 
-    if (slotSpinning && e.key == "Enter") {
+    if (slotSpinning && e.key == "Enter" || isCounting) {
         // skipAnimation = true;
         return
     }
@@ -77,12 +91,25 @@ document.addEventListener("keypress", (e) => {
     if (e.key == "/") {
         let balanceInput = prompt("Insert cash:")
 
-        balance = +balanceInput
+        balance += +balanceInput
+        sounds.playSound(sounds.addMoney)
+        checkButtons(balance)
         updateUI()
     }
 })
 
-function checkButtons() {
+function startMenuMusic() {
+    music = new Audio("audio/main-music.mp3");
+
+    music.volume = 0.01;
+    music.currentTime = 2
+    music.loop = true;
+    music.play();
+}
+
+startMenuMusic()
+
+function checkButtons(balance) {
     for (let i = 0; i < betButtons.length; i++) {
         if (+betButtons[i].value > balance) {
             betButtons[i].disabled = true
@@ -146,6 +173,7 @@ function generateSlots(parent) {
 
     for (let i = 0; i < numberofSlots; i++) {
         let rand = Math.floor(Math.random() * 101)
+
         rand = determineOutcome(rand, false)
 
         // Winning combo
@@ -185,19 +213,26 @@ function determineOutcome(rand, rigged) {
 
 function spinSlots() {
     // 0.25 is the minimum bet
-    if (balance - bet < 0) {
+    if ((balance - bet) + amountWon < 0 || (balance + amountWon) - bet < 0) {
+        console.log("I guess")
         return
     }
 
     timesSpun++;
 
+
+    music.play();
+
+    clearInterval(winningsInterval)
+
     slotSpinning = true
 
     sounds.playSound(sounds.startSlot, 0.01)
 
+    let wallet = (balance + amountWon) - bet;
+
     balance -= bet;
     sessionSpend += bet;
-    let wallet = +balance + +amountWon;
     balanceOutput.innerHTML = `$${wallet.toFixed(2)}`
     amountWon > 0 ? balance += amountWon : null
     amountWon = 0;
@@ -217,7 +252,7 @@ function spinSlots() {
 
     }
     animateReels(res);
-    checkButtons()
+    checkButtons(balance + amountWon)
 }
 
 function animateReels(res) {
@@ -265,7 +300,7 @@ function animateReels(res) {
 
         animation.onfinish = function() {
             test = true;
-            let newAudio = new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/reel-stop.mp3");
+            let newAudio = new Audio("audio/reel-stop.mp3");
             newAudio.volume = 0.2;
 
             if (skipAnimation) {
@@ -299,15 +334,21 @@ function removeAnimations(row, animationObj) {
 
 function checkSlots(parent) {
     let row = document.getElementsByClassName("slot-row")[parent]
-    let reel = row.querySelectorAll(".slot")
+    let reel = row.querySelectorAll(".slot");
+    let quickhitsInRow = 0;
     for (let i = 0; i < reel.length; i++) {
         const img = reel[i].getElementsByTagName("img")[0].src;
         const src = img.substring(img.indexOf("i"))
         if (src == "imgs/quickhit.png") {
-            let newQuickhit = new Audio("https://github.com/sleaye/Quickhits/blob/main/audio/quickhit.mp3")
+            quickhitsInRow++;
+            let newQuickhit = new Audio("audio/quickhit.mp3")
             newQuickhit.volume = 0.2;
             newQuickhit.play();
             reel[i].style.animation = "quickhit 0.4s"
+
+            if(i == 2 && quickhitsInRow == 3) {
+                sounds.playSound(sounds.quickHitPop);
+            }
         }
 
         // if(src == "imgs/bell.webp") {
@@ -367,6 +408,38 @@ function updateUI() {
 
 }
 
+function smoothCashFlow(won) {
+    let tempBalance = 0;
+
+    // let coinCounting = sounds.playSound(sounds.coinCounting, null, true)
+
+    let countSpeed = 1;
+
+    let skipCount = document.addEventListener("keypress", () => {
+            clearInterval(count)
+            balanceOutput.innerHTML = `$${(balance + amountWon).toFixed(2)}`
+            isCounting = false;
+            return;
+        }, {once: true})
+
+    let count = setInterval(() => {
+        isCounting = true
+        tempBalance += 0.04;
+
+        let output = "$" + (balance + tempBalance).toFixed(2);
+
+        balanceOutput.innerHTML = `${output}`
+
+        if(tempBalance >= won) {
+            balanceOutput.innerHTML = `$${(balance + amountWon).toFixed(2)}`
+            clearInterval(count)
+            document.removeEventListener("keypress", skipCount)
+            isCounting = false;
+        }
+    }, countSpeed)
+
+}
+
 function determineWinnings(results) {
     let quickhits = 0;
     let bells = 0;
@@ -406,7 +479,6 @@ function determineWinnings(results) {
 
     if (quickhits > 2 && quickhits < 5) {
         amountWon += displayWinningsUI(quickhits, 2)
-        winningOutputs.push(`${quickhits} pay good`)
         sounds.playSound(sounds.win)
     } else if (quickhits >= 5 && quickhits < 7) {
         amountWon += displayWinningsUI(quickhits, 5)
@@ -415,7 +487,8 @@ function determineWinnings(results) {
     } else if (quickhits == 12) {
         // JACKPOT
         triggerJackpot();
-    }
+    } 
+
 
     // if(bells > 5) {
     // amountWon += displayWinningsUI(bells, 0.01)
@@ -424,11 +497,13 @@ function determineWinnings(results) {
 
     totalWon += amountWon;
 
-
-
     console.log(`Bells canyon: ${bells}`, `Horseshoes: ${horseShoes}`, `Cherries: ${cherries}`, `Bars: ${bars}`, `Sevens: ${sevens}`, `Quickhits: ${quickhits}`)
-    updateUI()
-    checkButtons()
+    updateUI(amountWon)
+    checkButtons(balance + amountWon)
+    if(amountWon > 0) {
+        smoothCashFlow(amountWon)
+    }
+    
 }
 
 function animateSmallPayout(pos) {
@@ -450,15 +525,16 @@ function animateSmallPayout(pos) {
 function checkPaylines(results) {
     let i = 0;
     let itemindex = 0;
-    console.log(results)
     results.forEach((payline) => {
         // First row
         if (i == 1) {
             payline.forEach((item) => {
                 if (item == results[i + 1][itemindex]) {
                     if (validatePayline(results, item, itemindex)) {
-                        alert("DOUBLE")
+                        // alert("DOUBLE")
                         payFromSpin.innerHTML = "Double pays 20x";
+
+                        sounds.playSound(sounds.fourOfAKind);
 
                         // BAR
                         if(item == 75) {
@@ -500,7 +576,7 @@ function triggerJackpot() {
     winningsOutput.innerHTML = `$${amountWon}<bR>
     <p style='color: green'><b>JACKPOT!</b></p>`;
     setTimeout(() => {
-        alert("JACKPOT!")
+        // alert("JACKPOT!")
     }, 400)
 }
 
@@ -510,6 +586,4 @@ function displayWinningsUI(numIcons, prizeMultiplier) {
     winningsOutput.innerHTML = `Game pays: $${prizeCalc.toFixed(2)}`;
     amountWon = prizeCalc;
     return amountWon;
-
 }
-
