@@ -106,3 +106,73 @@ body {
 .bet-amounts button:disabled {
     opacity: 0.5;
 }
+
+@keyframes quickhit {
+    from {
+        scale: 0.5;
+        transition: all 2s ease;
+        transform: translateX(354deg);
+    }
+
+    to {
+        transition: 2s ease;
+        scale: 1;
+        background: rgba(7, 66, 229, 0.5);
+        border-radius: 5px;
+    }
+}
+
+@keyframes bellAnimation {
+    10% {
+        rotate: 45deg;
+    }
+
+    65% {
+        rotate: -25deg;
+    }
+
+    85% {
+        rotate: 0deg;
+    }
+
+    100% {
+        rotate: 0deg;
+    }
+}
+
+@keyframes BarAnimation {
+    from {
+        scale: 1;
+        background-color: rgb(128, 103, 33);
+    }
+
+    to {
+        transform: scale(1.4);
+        font-size: 25px;
+        
+    }
+}
+
+@keyframes HorseShoeAnimation {
+    from {
+        background-color: green;
+    }
+
+    to {
+        scale: 1.1;
+    }
+}
+
+@keyframes CherryAnimation {
+    from {
+        opacity: 0.5;
+        background-color: rgb(255, 0, 106);
+        transform: translateY(-100px);
+        scale: 0.2;
+    }
+
+    to {
+        transform: translateY(0px);
+        
+    }
+}
