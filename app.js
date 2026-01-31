@@ -339,7 +339,8 @@ function checkSlots(parent) {
     for (let i = 0; i < reel.length; i++) {
         const img = reel[i].getElementsByTagName("img")[0].src;
         const src = img.substring(20)
-        if (src == "/imgs/quickhit.png") {
+        console.log(img, src)
+        if (src == "imgs/quickhit.png") {
             quickhitsInRow++;
             let newQuickhit = new Audio("audio/quickhit.mp3")
             newQuickhit.volume = 0.2;
@@ -589,4 +590,5 @@ function displayWinningsUI(numIcons, prizeMultiplier) {
     amountWon = prizeCalc;
     return amountWon;
 }
+
 
